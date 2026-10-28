@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍅 极简番茄钟 | 专注工作25分钟</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #1e130c, #9a8478); /* 高级渐变背景 */
+            color: #fff;
+            margin: 0;
+        }
+        .timer-card {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 50px 80px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        h1 { margin-top: 0; font-size: 24px; letter-spacing: 2px; opacity: 0.9; }
+        #time-display {
+            font-size: 100px;
+            font-weight: 700;
+            margin: 20px 0;
+            font-family: 'Courier New', Courier, monospace;
+            text-shadow: 0 0 20px rgba(255,255,255,0.3);
+        }
+        .buttons { display: flex; gap: 20px; justify-content: center; margin-top: 30px; }
+        button {
+            padding: 12px 30px;
+            font-size: 18px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        #start-btn { background-color: #00b894; color: white; }
+        #start-btn:hover { background-color: #00a884; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,184,148,0.4); }
+        #reset-btn { background-color: transparent; color: #fff; border: 2px solid rgba(255,255,255,0.5); }
+        #reset-btn:hover { background-color: rgba(255,255,255,0.1); border-color: #fff; transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+
+<div class="timer-card">
+    <h1>专注时刻</h1>
+    <div id="time-display">25:00</div>
+    <div class="buttons">
+        <button id="start-btn">开始专注</button>
+        <button id="reset-btn">重置</button>
+    </div>
+</div>
+
+<script>
+    const WORK_TIME = 25 * 60; // 25分钟
+    let timeLeft = WORK_TIME;
+    let timerId = null;
+    let isRunning = false;
+
+    const display = document.getElementById('time-display');
+    const startBtn = document.getElementById('start-btn');
+    const resetBtn = document.getElementById('reset-btn');
+    const pageTitle = document.querySelector('title');
+
+    function updateDisplay() {
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        
+        display.textContent = timeString;
+        // 顺带把网页标题也改了，让用户切网页也能看到时间
+        if (isRunning) {
+            pageTitle.textContent = `(${timeString}) 🍅 专注中...`;
+        } else {
+            pageTitle.textContent = `🍅 极简番茄钟`;
+        }
+    }
+
+    function toggleTimer() {
+        if (isRunning) {
+            clearInterval(timerId);
+            isRunning = false;
+            startBtn.textContent = "继续专注";
+        } else {
+            isRunning = true;
+            startBtn.textContent = "暂停";
+            timerId = setInterval(() => {
+                if (timeLeft > 0) {
+                    timeLeft--;
+                    updateDisplay();
+                } else {
+                    clearInterval(timerId);
+                    isRunning = false;
+                    // 使用浏览器通知功能（如果用户允许）
+                    if (Notification.permission === "granted") {
+                        new Notification("时间到！", { body: "25分钟专注结束，起来喝杯水活动一下吧！" });
+                    } else {
+                        alert("🍅 时间到！起来活动一下吧！");
+                    }
+                    resetTimer();
+                }
+            }, 1000);
+        }
+    }
+
+    function resetTimer() {
+        clearInterval(timerId);
+        isRunning = false;
+        timeLeft = WORK_TIME;
+        updateDisplay();
+        startBtn.textContent = "开始专注";
+        pageTitle.textContent = `🍅 极简番茄钟`;
+    }
+
+    startBtn.addEventListener('click', toggleTimer);
+    resetBtn.addEventListener('click', resetTimer);
+    
+    // 初始化显示
+    updateDisplay();
+</script>
+
+</body>
+</html>
